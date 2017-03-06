@@ -303,9 +303,9 @@ namespace TextMatcher
             /// Ignores empty patterns.
             /// </summary>
             /// <param name="p">A pattern.</param>
-            public void IsNullOrEmpty(string p)
+            public void AddNegativePattern(string p)
             {
-                if (String.IsNullOrWhiteSpace(p)) return;
+                if (String.IsNullOrEmpty(p)) return;
 
                 NegativePatterns.Add(p);
             }
