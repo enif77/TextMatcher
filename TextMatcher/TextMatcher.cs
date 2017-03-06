@@ -23,6 +23,8 @@ freely, subject to the following restrictions:
 namespace TextMatcher
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Text.RegularExpressions;
 
     /// <summary>
@@ -181,6 +183,134 @@ namespace TextMatcher
             }
 
             return patternIndex >= pattern.Length;
+        }
+
+
+        /// <summary>
+        /// Checks if a string matches agains patterns.
+        /// No defined patterns or no pattern config profided = always a match.
+        /// </summary>
+        /// <param name="patternConfig">A PatternConfig instance.</param>
+        /// <param name="s">A string to match against defined patterns.</param>
+        /// <returns>True, if the string matches.</returns>
+        public static bool MatchPattern(PatternConfig patternConfig, string s)
+        {
+            // Nothing to match...
+            if (patternConfig == null)
+            {
+                return true;
+            }
+
+            // The match status.
+            bool matched;
+
+            // Match against positive patterns first if any.
+            if (patternConfig.PositivePatterns.Count > 0)
+            {
+                matched = patternConfig.MatchAll
+                    ? patternConfig.PositivePatterns.All(s.Contains)
+                    : patternConfig.PositivePatterns.Any(s.Contains);
+            }
+            else
+            {
+                // No positive matches means a match.
+                matched = true;
+            }
+
+            // Positive patterns are saying not matched,
+            // so we can ignore negative patterns.
+            if (matched == false) return false;
+
+            // Match against negative patterns if any.
+            if (patternConfig.NegativePatterns.Count > 0)
+            {
+                // A fileName should not contain any negative pattern.
+                //matched = !_negativePatterns.Any(fileName.Contains);
+                foreach (var pattern in patternConfig.NegativePatterns)
+                {
+                    if (s.Contains(pattern))
+                    {
+                        matched = false;
+
+                        break;
+                    }
+                }
+            }
+
+            return matched;
+        }
+
+
+        /// <summary>
+        /// Defines patterns and other pattern-match related settings.
+        /// </summary>
+        public class PatternConfig
+        {
+            #region ctor
+
+            /// <summary>
+            /// Constructor.
+            /// </summary>
+            public PatternConfig()
+            {
+                MatchAll = true;
+
+                PositivePatterns = new List<string>();
+                NegativePatterns = new List<string>();
+            }
+
+            #endregion
+
+
+            #region public
+
+            /// <summary>
+            /// If true (the default), tested string must match against all positive patterns.
+            /// </summary>
+            public bool MatchAll { get; set; }
+
+            /// <summary>
+            /// The list of positive patterns.
+            /// </summary>
+            public List<string> PositivePatterns
+            {
+                get; private set;
+            }
+
+            /// <summary>
+            /// The list of negative patterns.
+            /// </summary>
+            public List<string> NegativePatterns
+            {
+                get; private set;
+            }
+
+
+            /// <summary>
+            /// Adds a pattern to the list of positive patterns.
+            /// Ignores empty patterns.
+            /// </summary>
+            /// <param name="p">A pattern.</param>
+            public void AddPositivePattern(string p)
+            {
+                if (String.IsNullOrEmpty(p)) return;
+
+                PositivePatterns.Add(p);
+            }
+
+            /// <summary>
+            /// Adds a pattern to the list of negative patterns.
+            /// Ignores empty patterns.
+            /// </summary>
+            /// <param name="p">A pattern.</param>
+            public void IsNullOrEmpty(string p)
+            {
+                if (String.IsNullOrWhiteSpace(p)) return;
+
+                NegativePatterns.Add(p);
+            }
+            
+            #endregion
         }
     }
 }
